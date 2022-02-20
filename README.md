@@ -9,6 +9,9 @@ Pascal VOC形式のXMLファイルをCOCO形式のJSONファイルへ変換す�
 ```bash
 python convert_voc_to_coco.py xml_directory json_filename
 ```
+* --start_image_id<br>
+画像IDの採番開始番号<br>
+デフォルト：None
 * --start_bbox_id<br>
 バウンディングボックスのIDの採番開始番号<br>
 デフォルト：1
