@@ -25,6 +25,11 @@ def get_args():
     )
 
     parser.add_argument(
+        "--start_image_id",
+        type=int,
+        default=None,
+    )
+    parser.add_argument(
         "--start_bbox_id",
         help="Bounding Box start ID.",
         type=int,
@@ -61,6 +66,7 @@ def main():
     xml_dir = args.xml_dir
     json_file = args.json_file
 
+    start_image_id = args.start_image_id
     start_bbox_id = args.start_bbox_id
     category_txt_path = args.category
     indent = args.indent
@@ -75,7 +81,7 @@ def main():
         with open(category_txt_path, 'r') as f:
             category_list = f.readlines()
             predefine_categories = {
-                name.rstrip('\n'): i + 1
+                name.rstrip('\n'): i
                 for i, name in enumerate(category_list)
             }
 
@@ -91,6 +97,7 @@ def main():
     json_dict = convert_xml_to_json(
         xml_files,
         categories,
+        start_image_id,
         start_bbox_id,
         bbox_offset,
     )
@@ -147,16 +154,25 @@ def get_element(root, name, length=None):
 
 
 def get_basename_without_ext(filename):
-    # 拡張子を含まないファイル名を取得 
+    # 拡張子を含まないファイル名を取得
     basename_without_ext = filename.replace("\\", "/")
     basename_without_ext = os.path.splitext(os.path.basename(filename))[0]
 
     return str(basename_without_ext)
 
 
+def get_basename_with_ext(filename):
+    # 拡張子を含むファイル名を取得
+    basename_with_ext = filename.replace("\\", "/")
+    basename_with_ext = os.path.basename(basename_with_ext)
+
+    return str(basename_with_ext)
+
+
 def convert_xml_to_json(
     xml_files,
     categories=None,
+    start_image_id=None,
     start_bbox_id=1,
     bbox_offset=-1,
 ):
@@ -168,6 +184,8 @@ def convert_xml_to_json(
     }
 
     bbox_id = start_bbox_id
+    if start_image_id is not None:
+        image_id_count = start_image_id
 
     for xml_file in tqdm(xml_files, "Convert XML to JSON"):
         # ルート要素取得
@@ -187,7 +205,10 @@ def convert_xml_to_json(
         size = get_element(root, "size", 1)
         width = int(get_element(size, "width", 1).text)
         height = int(get_element(size, "height", 1).text)
-        image_id = get_basename_without_ext(filename)
+        if start_image_id is None:
+            image_id = get_basename_without_ext(filename)
+        else:
+            image_id = image_id_count
 
         # JSON Dict追加
         image_info = {
@@ -235,6 +256,9 @@ def convert_xml_to_json(
             json_dict["annotations"].append(annotation_info)
 
             bbox_id = bbox_id + 1
+            
+        if start_image_id is not None:
+            image_id_count = image_id_count + 1
 
     # カテゴリー情報
     for category_name, category_id in categories.items():
