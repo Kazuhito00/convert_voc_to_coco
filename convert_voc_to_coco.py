@@ -182,6 +182,7 @@ def convert_xml_to_json(
         "annotations": [],
         "categories": []
     }
+    count_dict = {}
 
     bbox_id = start_bbox_id
     if start_image_id is not None:
@@ -227,6 +228,11 @@ def convert_xml_to_json(
             if category not in categories:
                 new_id = len(categories)
                 categories[category] = new_id
+            # カテゴリー数カウント
+            if category not in count_dict:
+                count_dict[category] = 0
+            else:
+                count_dict[category] += 1
 
             # カテゴリーID取得
             category_id = categories[category]
@@ -256,7 +262,7 @@ def convert_xml_to_json(
             json_dict["annotations"].append(annotation_info)
 
             bbox_id = bbox_id + 1
-            
+
         if start_image_id is not None:
             image_id_count = image_id_count + 1
 
@@ -268,6 +274,8 @@ def convert_xml_to_json(
             "name": category_name
         }
         json_dict["categories"].append(category_info)
+
+    print(count_dict)
 
     return json_dict
 
