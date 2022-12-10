@@ -54,6 +54,12 @@ def get_args():
         default=-1,
     )
 
+    parser.add_argument(
+        "--reserve_category_num",
+        type=int,
+        default=None,
+    )
+
     args = parser.parse_args()
 
     return args
@@ -71,6 +77,8 @@ def main():
     category_txt_path = args.category
     indent = args.indent
     bbox_offset = args.bbox_offset
+
+    reserve_category_num = args.reserve_category_num
 
     # Pascal VOC XMLファイルリスト取得
     xml_files = glob.glob(os.path.join(xml_dir, "*.xml"))
@@ -100,6 +108,7 @@ def main():
         start_image_id,
         start_bbox_id,
         bbox_offset,
+        reserve_category_num,
     )
 
     # JSON保存
@@ -175,6 +184,7 @@ def convert_xml_to_json(
     start_image_id=None,
     start_bbox_id=1,
     bbox_offset=-1,
+    reserve_category_num=None,
 ):
     json_dict = {
         "images": [],
@@ -267,6 +277,7 @@ def convert_xml_to_json(
             image_id_count = image_id_count + 1
 
     # カテゴリー情報
+    max_category_id = 0
     for category_name, category_id in categories.items():
         category_info = {
             "supercategory": "none",
@@ -274,6 +285,18 @@ def convert_xml_to_json(
             "name": category_name
         }
         json_dict["categories"].append(category_info)
+
+        if max_category_id <= category_id:
+            max_category_id = category_id + 1
+
+    if reserve_category_num is not None:
+        for index in range(max_category_id, reserve_category_num):
+            category_info = {
+                "supercategory": "none",
+                "id": index,
+                "name": 'reserve_' + str(index).zfill(4)
+            }
+            json_dict["categories"].append(category_info)
 
     print(count_dict)
 
