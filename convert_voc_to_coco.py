@@ -290,13 +290,15 @@ def convert_xml_to_json(
             max_category_id = category_id + 1
 
     if reserve_category_num is not None:
-        for index in range(max_category_id, reserve_category_num):
+        for index in range(len(json_dict["categories"]), reserve_category_num):
             category_info = {
                 "supercategory": "none",
-                "id": index,
+                "id": max_category_id,
                 "name": 'reserve_' + str(index).zfill(4)
             }
             json_dict["categories"].append(category_info)
+
+            max_category_id += 1
 
     print(count_dict)
 
